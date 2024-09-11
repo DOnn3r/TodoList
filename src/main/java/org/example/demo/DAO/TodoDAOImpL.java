@@ -5,13 +5,11 @@ import org.example.demo.entity.Status;
 import org.example.demo.entity.Todo;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class TodoDAOImpL implements TodoDAO{
@@ -23,15 +21,15 @@ public class TodoDAOImpL implements TodoDAO{
 
     @Override
     public void create(Todo toAdd) {
-        String query = "INSERT INTO todo (?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO todo (id, title, description, creationdate, deadline, executiondate, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement stm = db.getConnection().prepareStatement(query)) {
-            stm.setInt( 1, toAdd.getId() );
+            stm.setInt(1, toAdd.getId());
             stm.setString(2, toAdd.getTitle());
             stm.setString(3, toAdd.getDescription());
-            stm.setObject(4, toAdd.getCreationDate());
-            stm.setObject(5, toAdd.getDeadline());
-            stm.setObject(6, toAdd.getExecutionDate());
+            stm.setTimestamp(4, Timestamp.valueOf(toAdd.getCreationDate()));
+            stm.setTimestamp(5, Timestamp.valueOf(toAdd.getDeadline()));
+            stm.setTimestamp(6, Timestamp.valueOf(toAdd.getExecutionDate()));
             stm.setString(7, toAdd.getPriority().name());
             stm.setString(8, toAdd.getStatus().name());
 
@@ -40,6 +38,7 @@ public class TodoDAOImpL implements TodoDAO{
             e.printStackTrace();
         }
     }
+
 
     @Override
     public List<Todo> findAll() {
@@ -68,15 +67,17 @@ public class TodoDAOImpL implements TodoDAO{
     }
 
     @Override
-    public Todo readOne(int id) {
-        String query = "select * from todo where id = " + id;
-        try(PreparedStatement stm= db.getConnection().prepareStatement(query)){
-            ResultSet rs = stm.executeQuery((query));
-            if (rs.next()){
-                return new Todo(
+    public Optional<Todo> readOne(int id) {
+        String query = "select * from todo where id = ?";
+        Todo todo = null;
+        try (PreparedStatement stm = db.getConnection().prepareStatement(query)) {
+            stm.setInt(1, id);
+            ResultSet rs = stm.executeQuery();
+            if (rs.next()) {
+                todo = new Todo(
                         rs.getInt("id"),
                         rs.getString("title"),
-                        rs.getString(("description")),
+                        rs.getString("description"),
                         rs.getObject("creationdate", LocalDateTime.class),
                         rs.getObject("deadline", LocalDateTime.class),
                         rs.getObject("executiondate", LocalDateTime.class),
@@ -84,11 +85,10 @@ public class TodoDAOImpL implements TodoDAO{
                         Status.valueOf(rs.getString("status"))
                 );
             }
-
-        }catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return Optional.ofNullable(todo);
     }
 
     @Override
@@ -130,15 +130,15 @@ public class TodoDAOImpL implements TodoDAO{
     @Override
     public List<Todo> searchByStatus(String status) {
         List<Todo> allTodos = new ArrayList<>();
-        try(Statement stm = db.getConnection().createStatement()){
-            String query = "select * from todo where status =" + status;
-
-            ResultSet rs = stm.executeQuery(query);
-            while(rs.next()){
+        String query = "select * from todo where status = ?";
+        try (PreparedStatement stm = db.getConnection().prepareStatement(query)) {
+            stm.setString(1, status);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
                 Todo toAdd = new Todo(
                         rs.getInt("id"),
                         rs.getString("title"),
-                        rs.getString(("description")),
+                        rs.getString("description"),
                         rs.getObject("creationdate", LocalDateTime.class),
                         rs.getObject("deadline", LocalDateTime.class),
                         rs.getObject("executiondate", LocalDateTime.class),
@@ -147,9 +147,10 @@ public class TodoDAOImpL implements TodoDAO{
                 );
                 allTodos.add(toAdd);
             }
-        }catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return allTodos;
     }
+
 }

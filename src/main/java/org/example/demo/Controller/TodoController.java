@@ -2,13 +2,11 @@ package org.example.demo.Controller;
 
 import org.example.demo.Service.TodoService;
 import org.example.demo.entity.Todo;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class TodoController {
@@ -30,23 +28,22 @@ public class TodoController {
     }
 
     @GetMapping("/todos/{id}")
-    public Todo getTodoById(int id) throws SQLException, ClassNotFoundException {
+    public Optional<Todo> getTodoById(@PathVariable Integer id) throws SQLException, ClassNotFoundException {
         return service.getTodoById(id);
     }
 
-    @GetMapping("/search?status=IN_PROGRESS")
-    public List<Todo> searchTodoInProgress() throws SQLException, ClassNotFoundException {
-        return service.searchInProgress();
-    }
-
-    @GetMapping("/search?status=DONE")
-    public List<Todo> searchTodoDone() throws SQLException, ClassNotFoundException {
-        return service.searchDone();
+    @GetMapping("/search")
+    public List<Todo> searchTodoByStatus(@RequestParam String status) throws SQLException, ClassNotFoundException {
+        return service.searchByStatus(status);
     }
 
     @PostMapping("/todo")
-    public void addTodo(Todo todo) throws SQLException, ClassNotFoundException {
+    public void addTodo(@RequestBody Todo todo) throws SQLException, ClassNotFoundException {
         service.createTodo(todo);
     }
 
+    @PostMapping("/update/{id}")
+    public void updateTodo(@RequestBody Todo todo, @PathVariable Integer id) throws SQLException, ClassNotFoundException {
+        service.updateTodo(id, todo);
+    }
 }

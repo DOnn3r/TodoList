@@ -8,10 +8,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TodoService {
-    private TodoDAO dao;
+    private final TodoDAO dao;
 
     public TodoService(TodoDAOImpL dao){
         this.dao = dao;
@@ -20,11 +21,12 @@ public class TodoService {
     public void createTodo(Todo todo){
         dao.create(todo);
     }
+
     public List<Todo> getAllTodos(){
         return dao.findAll();
     }
 
-    public Todo getTodoById(int id){
+    public Optional<Todo> getTodoById(int id){
         return dao.readOne(id);
     }
 
@@ -36,13 +38,8 @@ public class TodoService {
         dao.delete(id);
     }
 
-    public List<Todo> searchInProgress(){
-        String status1 = "IN_PROGRESS";
-        return dao.searchByStatus(status1);
+    public List<Todo> searchByStatus(String status) {
+        return dao.searchByStatus(status);
     }
 
-    public List<Todo> searchDone(){
-        String status1 = "DONE";
-        return dao.searchByStatus(status1);
-    }
 }
