@@ -1,5 +1,6 @@
 package org.example.demo.DAO;
 
+import org.example.demo.entity.Status;
 import org.example.demo.entity.Todo;
 
 import java.util.List;
@@ -10,4 +11,5 @@ public interface TodoDAO {
     Todo readOne(int id);
     Todo update(int id, Todo toUpdate);
     void delete(int id);
+    List<Todo> searchByStatus(String status);
 }
